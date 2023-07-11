@@ -42,7 +42,7 @@ class protocol
         $b = '';
         $b .= pack('N', $this->PackageLen); // 4字节的包头
         $b .= $this->Sign; // 16字节的签名
-        $b .= pack('N', $this->TimeStamp); // 8字节的unix时间戳(int64)
+        $b .= pack('NN', $this->TimeStamp); // 8字节的unix时间戳(int64)
         $b .= pack('N', $this->Cmd); // 4字节的指令
         $b .= $this->Json; // n字节的json字符串
 
@@ -54,7 +54,7 @@ class protocol
         // []byte(sign签名) = [8]byte(timeUnix)+[2]byte(Cmd)+[n]byte(json)+私钥
         $ToBeSign = '';
         // 时间戳
-        $ToBeSign .= pack('N', $this->TimeStamp); // [8]byte(timeUnix)
+        $ToBeSign .= pack('NN', $this->TimeStamp); // [8]byte(timeUnix)
         // 指令
         $ToBeSign .= pack('N', $this->Cmd); // [4]byte(Cmd)
         // json内容
