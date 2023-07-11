@@ -10,32 +10,27 @@ composer require captainstdin/gateway-go-client"
 #### 使用时引入 `vendor/autoload.php` 类似如下：
 
 ```php
-use Captainstdin\GatewayGoClient;
+use Captainstdin\GatewayGoClient\Gateway;
 require_once '真实路径/vendor/autoload.php'; 
 ```
 
 ### 方法二 （适用于php require单文件调用）
 
-#### 下载源文件到任意目录，手动引入 `src/GatewayGoClient.php`, 类似如下：
+#### 下载源文件到任意目录，手动引入 `src/Gateway.php`, 类似如下：
 
 ```php
-use Captainstdin\GatewayGoClient;
-require_once '真实路径/src/GatewayGoClient.php';
+use Captainstdin\GatewayGoClient\Gateway;
+require_once '真实路径/src/Gateway.php';
 
 ```
 
-
-
-## 使用
+## 使用 SDK(PHP版)
 
 
 ```php
-// GatewayClient 3.0.0版本以后加了命名空间
-use GatewayClient\Gateway;
-
+use Captainstdin\GatewayGoClient\Gateway;
 // composer安装
 require_once '真实路径/vendor/autoload.php';
-
 // 源文件引用
 //require_once '真实路径/GatewayClient/Gateway.php';
 

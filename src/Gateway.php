@@ -4,7 +4,7 @@ namespace Captainstdin\GatewayGoClient;
 
 require_once "Consts.php";
 
-class GatewayClient implements GatewayLibInterface
+class Gateway implements GatewayLibInterface
 {
 
     public function getPrintGatewayAddr()
