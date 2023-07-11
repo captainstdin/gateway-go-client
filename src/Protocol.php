@@ -5,8 +5,9 @@ namespace Captainstdin\GatewayGoClient;
 /**
  * Author : gpt-3.5-turbo
  */
-class protocol
+class Protocol
 {
+    public static $timeout=60;
     public $PackageLen; // 4字节 包体长度,不参与签名
     public $Sign; // 不参与签名
     public $TimeStamp; // 8字节
@@ -22,15 +23,26 @@ class protocol
     {
         // 计算二进制长度
         $b2 = '';
+        $b2 .= pack('N', 0);
         $b2 .= pack('N', $this->TimeStamp);
+
+//        echo('debug 长度调试'.strlen($b2)).PHP_EOL;
+
         $b2 .= $this->Sign;
 
         if (!$ExcludeJson) {
             $b2 .= $this->Json;
         }
+//
+//        var_dump(strlen($this->Json));
+//
+//        var_dump($this->Json);
+        //4 headerLen + 16 md5 sign + 8 timestamp + 4 command (32 []byte)
 
         $b2 .= pack('N', $this->Cmd);
 
+
+        $this->PackageLen=strlen($b2);
         return strlen($b2);
     }
 
@@ -38,11 +50,15 @@ class protocol
     public function ToByte()
     {
         $this->PackageLen = $this->sumPackageLen(false);
-        // 4字节的包头 + 16字节的签名 + 8字节的unix时间戳(int64) + 2字节的指令 + n字节的json字符串
+
+        // 4字节的包头 + 16字节的签名 + 8字节的unix时间戳(int64) + 4字节的指令 + n字节的json字符串
         $b = '';
         $b .= pack('N', $this->PackageLen); // 4字节的包头
+
         $b .= $this->Sign; // 16字节的签名
-        $b .= pack('NN', $this->TimeStamp); // 8字节的unix时间戳(int64)
+
+        $b .= pack('N', 0); // 8字节的unix时间戳(int64)
+        $b .= pack('N', $this->TimeStamp); // 8字节的unix时间戳(int64)
         $b .= pack('N', $this->Cmd); // 4字节的指令
         $b .= $this->Json; // n字节的json字符串
 
@@ -54,7 +70,8 @@ class protocol
         // []byte(sign签名) = [8]byte(timeUnix)+[2]byte(Cmd)+[n]byte(json)+私钥
         $ToBeSign = '';
         // 时间戳
-        $ToBeSign .= pack('NN', $this->TimeStamp); // [8]byte(timeUnix)
+        $ToBeSign .= pack('N', 0); // [8]byte(timeUnix)
+        $ToBeSign .= pack('N', $this->TimeStamp); // [8]byte(timeUnix)
         // 指令
         $ToBeSign .= pack('N', $this->Cmd); // [4]byte(Cmd)
         // json内容
@@ -62,6 +79,24 @@ class protocol
         $ToBeSign .= $secretKey;
 
         return md5($ToBeSign, true);
+    }
+
+    public static function GenerateSignTimeByte(int $Cmd,array $data,string $secretKey)
+    {
+        $jsonDataStr = json_encode($data);
+        if ($jsonDataStr === false) {
+            return null;
+        }
+
+        $expireTime = time() + self::$timeout;
+
+        $gen = new self();
+        $gen->TimeStamp = $expireTime;
+        $gen->Cmd = $Cmd;
+        $gen->Json = $jsonDataStr;
+
+        $gen->Sign = $gen->sumSign($secretKey);
+        return $gen;
     }
 }
 
@@ -83,23 +118,6 @@ function toString($v)
     }
 }
 
-function GenerateSignTimeByte($Cmd, $data, $secretKey, $funcTime)
-{
-    $jsonDataStr = json_encode($data);
-    if ($jsonDataStr === false) {
-        return null;
-    }
-
-    $expireTime = time() + $funcTime();
-
-    $gen = new GenerateComponentSign();
-    $gen->TimeStamp = $expireTime;
-    $gen->Cmd = $Cmd;
-    $gen->Json = $jsonDataStr;
-
-    $gen->Sign = $gen->sumSign($secretKey);
-    return $gen;
-}
 
 function ParseAndVerifySignJsonTime($dataByte, $secretKey)
 {
