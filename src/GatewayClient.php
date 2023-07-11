@@ -2,8 +2,6 @@
 
 namespace Captainstdin\GatewayGoClient;
 
-use Captainstdin\GatewayGoClient;
-
 require_once "Consts.php";
 
 class GatewayClient implements GatewayLibInterface
@@ -23,10 +21,11 @@ class GatewayClient implements GatewayLibInterface
     public function __construct($register = [], $signKey = '')
     {
 
+        $this->registerAddr=$register;
         $this->signKey = $signKey;
         $gatewayApis = [];
 
-        foreach ($register as $r) {
+        foreach ($this->registerAddr as $r) {
             $httpC = new  HttpClient($r . RegisterForComponent);
 
             $dataSign = Protocol::GenerateSignTimeByte(CommandComponentAuthRequest, [
@@ -62,7 +61,7 @@ class GatewayClient implements GatewayLibInterface
             }
         }
 
-        $this->gatewayAddr = $gatewayApis;
+        $this->gatewayAddr=\array_unique($gatewayApis);
     }
 
 
@@ -86,7 +85,7 @@ class GatewayClient implements GatewayLibInterface
             'exclude_client_id' => $exclude_client_id,
         ], $this->signKey);
 
-        $this->distributed($dataSign);
+        $this->distributed($dataSign->ToByte());
     }
 
     public function sendToClient(string $client_id, string $send_data)
@@ -282,7 +281,6 @@ class GatewayClient implements GatewayLibInterface
         foreach ($resArr as $item) {
             $Data = json_decode($item, true);
             if (!isset ($Data['clientCount'])) {
-                //todo
                 print_r("warning skip  getClientIdCountByGroup()  : ", $item);
                 continue;
             }
@@ -408,43 +406,207 @@ class GatewayClient implements GatewayLibInterface
         return $Data['session'];
     }
 
+    /**
+     * @param string $group
+     * @return array
+     *
+     * array(
+    '7f00000108fc00000008' => '7f00000108fc00000008',
+    '7f00000108fc00000009' => '7f00000108fc00000009'
+    )
+     */
     public function getClientIdListByGroup(string $group): array
     {
-        // TODO: Implement getClientIdListByGroup() method.
+
+        $dataSign =  Protocol::GenerateSignTimeByte(GatewayCommandGetClientIdListByGroup, [
+            'group' => $group,
+        ], $this->signKey);
+
+        $retArr=$this->distributed($dataSign->ToByte());
+        $client_list=[];
+        foreach ($retArr as $item){
+            $Data=json_decode($item,true);
+            if (!isset($Data['clientIDList'])){
+                print_r("warning skip  getClientIdListByGroup()  : ", $item);
+                continue;
+            }
+            foreach ($Data['clientIDList'] as $client_id){
+                $client_list[$client_id]=$client_id;
+            }
+        }
+        return $client_list;
     }
 
+    /**
+     * @return array
+     * array(
+    '7f00000108fc00000008' => '7f00000108fc00000008',
+    '7f00000108fc00000009' => '7f00000108fc00000009'
+    )
+     */
     public function getAllClientIdList(): array
     {
-        // TODO: Implement getAllClientIdList() method.
+        $dataSign =  Protocol::GenerateSignTimeByte(GatewayCommandGetAllClientIdList, [
+        ], $this->signKey);
+
+        $retArr=$this->distributed($dataSign->ToByte());
+
+        $client_list=[];
+        foreach ($retArr as $item){
+            $Data=json_decode($item,true);
+
+            if (!isset($Data['clientIDList'])){
+                print_r("warning skip  getAllClientIdList()  : ", $item);
+                continue;
+            }
+            foreach ($Data['clientIDList'] as $client_id){
+                $client_list[$client_id]=$client_id;
+            }
+        }
+        return $client_list;
     }
 
     public function getUidListByGroup(string $group): array
     {
-        // TODO: Implement getUidListByGroup() method.
+        $dataSign =  Protocol::GenerateSignTimeByte(GatewayCommandGetUidListByGroup, [
+            'group'=>$group,
+        ], $this->signKey);
+
+        $retArr=$this->distributed($dataSign->ToByte());
+
+        $client_list=[];
+        foreach ($retArr as $item){
+            $Data=json_decode($item,true);
+
+            if (!isset($Data['uidList'])){
+                print_r("warning skip  getAllClientIdList()  : ", $item);
+                continue;
+            }
+            foreach ($Data['uidList'] as $client_id){
+                $client_list[$client_id]=$client_id;
+            }
+        }
+        return $client_list;
     }
 
     public function getUidCountByGroup(string $group): int
     {
-        // TODO: Implement getUidCountByGroup() method.
+        $dataSign =  Protocol::GenerateSignTimeByte(GatewayCommandGetUidCountByGroup, [
+            'group'=>$group,
+        ], $this->signKey);
+
+
+        $retArr=$this->distributed($dataSign->ToByte());
+
+        $count=0;
+        foreach ($retArr as $item){
+            $Data=json_decode($item,true);
+
+            if (!isset($Data['uidCount'])){
+                print_r("warning skip  getUidCountByGroup()  : ", $item);
+                continue;
+            }
+
+            $count+=$Data['uidCount'];
+        }
+        return $count;
     }
 
+    /**
+     * @return array
+    array(
+    '123' => '123',
+    '456' => '456'
+    )
+     */
     public function getAllUidList(): array
     {
-        // TODO: Implement getAllUidList() method.
+        $dataSign =  Protocol::GenerateSignTimeByte(GatewayCommandGetAllUidList, [
+        ], $this->signKey);
+
+        $retArr=$this->distributed($dataSign->ToByte());
+
+        $client_list=[];
+        foreach ($retArr as $item){
+            $Data=json_decode($item,true);
+
+            if (!isset($Data['uidList'])){
+                print_r("warning skip  getAllUidList()  : ", $item);
+                continue;
+            }
+            foreach ($Data['uidList'] as $client_id){
+                $client_list[$client_id]=$client_id;
+            }
+        }
+        return $client_list;
+
     }
 
     public function getAllUidCount(): int
     {
-        // TODO: Implement getAllUidCount() method.
+        $dataSign =  Protocol::GenerateSignTimeByte(GatewayCommandGetAllUidCount, [
+        ], $this->signKey);
+
+        $retArr=$this->distributed($dataSign->ToByte());
+
+        $count=0;
+        foreach ($retArr as $item){
+            $Data=json_decode($item,true);
+
+            if (!isset($Data['uidCount'])){
+                print_r("warning skip  getAllUidCount()  : ", $item);
+                continue;
+            }
+
+            $count+=$Data['uidCount'];
+        }
+        return $count;
     }
 
+    /**
+     * @return array
+    array(
+    'room-1' => 'room-1',
+    'room-2' => 'room-2'
+    )
+     */
     public function getAllGroupIdList(): array
     {
-        // TODO: Implement getAllGroupIdList() method.
+        $dataSign =  Protocol::GenerateSignTimeByte(GatewayCommandGetAllGroupIdList, [
+        ], $this->signKey);
+
+        $retArr=$this->distributed($dataSign->ToByte());
+        $group_id_list=[];
+        foreach ($retArr as $item){
+            $Data=json_decode($item,true);
+
+            if (!isset($Data['groupIDList'])){
+                print_r("warning skip  getAllGroupIdList()  : ", $item);
+                continue;
+            }
+            foreach ($Data['groupIDList'] as $group_id){
+                $group_id_list[$group_id]=$group_id;
+            }
+        }
+        return $group_id_list;
     }
 
     public function getAllGroupCount(): int
     {
-        // TODO: Implement getAllGroupCount() method.
+        $dataSign =  Protocol::GenerateSignTimeByte(GatewayCommandGetAllGroupCount, [
+        ], $this->signKey);
+
+        $retArr=$this->distributed($dataSign->ToByte());
+
+        $count=0;
+        foreach ($retArr as $item){
+            $Data=json_decode($item,true);
+            if (!isset($Data['groupCount'])){
+                print_r("warning skip  getAllGroupCount()  : ", $item);
+                continue;
+            }
+            $count+=$Data['groupCount'];
+        }
+        return $count;
     }
 }
