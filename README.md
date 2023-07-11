@@ -1,10 +1,9 @@
-
-
+# GatewayClient(SDK for PHP7.x)
 ## 安装
 ### 方法一 (适用于Composer集成)
 
 ```
-composer require captainstdin/gateway-go-client"
+composer require captainstdin/gateway-go-client
 ```
 
 #### 使用时引入 `vendor/autoload.php` 类似如下：
