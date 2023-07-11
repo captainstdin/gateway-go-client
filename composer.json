@@ -1,0 +1,20 @@
+{
+    "name": "captainstdin/gateway-go-client",
+    "description": "websocket gatewayworker client for php",
+    "type": "library",
+    "require": {
+        "php": "^8.1",
+        "ext-json": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Captainstdin\\GatewayGoClient\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "棘手",
+            "email": "56504552+captainstdin@users.noreply.github.com"
+        }
+    ]
+}
